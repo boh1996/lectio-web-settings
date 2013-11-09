@@ -42,6 +42,55 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
+@application.route("/save/school", methods=["POST","GET"])
+def save_school():
+    if request.args.get("token"):
+        UserObject = db.session.query(User).join(UserToken,UserToken.user_id == User.user_id).filter(UserToken.token == request.args.get("token")).first()
+        if isinstance(UserObject, User):
+            if "branch_id" in request.form:
+                UserObject.branch_id = request.form["branch_id"]
+            if "school_id" in request.form:
+                UserObject.school_id = request.form["school_id"]
+            db.session.add(UserObject)
+            db.session.commit()
+
+            return json.dumps({
+                "status" : "ok"
+            })
+        else:
+            return json.dumps({
+            "status" : "error",
+            "error_code" : "403",
+            "error_message" : "No token found!"
+        }), 403
+    else:
+        return json.dumps({
+            "status" : "error",
+            "error_code" : "400",
+            "error_message" : "No token supplied"
+        }), 400
+
+@application.route("/schools")
+def schools():
+    if request.args.get("suggest") == False:
+        schools = db.session.query(School).all()
+    else:
+        print "Suggest"
+        searchstring = request.args.get("suggest") + '%'
+        schools = db.session.query(School).filter(School.name.like(searchstring)).limit(5)
+
+    schoolList = []
+    for school in schools:
+        schoolList.append({
+            "name" : school.name,
+            "branch_id" : school.school_branch_id,
+            "school_id" : school.school_id,
+            "id" : school.id,
+            "tokens" : [school.name],
+            "value" : school.name
+        })
+    return json.dumps(schoolList)
+
 # Return from Google Auth callback
 @application.route("/callback")
 def callback():
@@ -87,20 +136,20 @@ def callback():
                     "status" : "error",
                     "error" : "No user data fetched",
                     "error_code" : "404"
-                })
+                }), 404
         else:
             return json.dumps({
                 "status" : "error",
                 "error" : "No access token fetched",
                 "error_code" : "403",
                 "error_message" : data.error
-            })
+            }), 403
     else:
         return json.dumps({
             "status" : "error",
             "error" : request.args.get("error"),
             "error_code" : 500,
-        })
+        }), 500
 
 # Run the app/server
 if __name__ == '__main__':
