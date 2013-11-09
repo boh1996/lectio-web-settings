@@ -34,3 +34,12 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+.idea
+config.py
+.sublime-project
+.sublime-*
+*.sublime-*
+.idea/
+/.idea
+\.idea
