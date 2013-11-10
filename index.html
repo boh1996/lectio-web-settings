@@ -7,6 +7,7 @@
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script src="bootstrap/js/bootstrap.min.js"></script>
+        <script src="js/bootstrap-checkbox.js"></script>
         <script src="js/signals.min.js"></script>
         <script src="js/crossroads.min.js"></script>
         <script src="js/jquery.history.js"></script>
@@ -48,18 +49,30 @@
 						<form class="form-horizontal" role="form">
 							<div class="form-group">
 								<div class="col-sm-offset-1">
-								    <div class="checkbox">
-								        <label>
-								        	<input type="checkbox"> Simplify
-								        </label>
-								    </div>
+									<a class="btn btn-default" id="signup_calendars">Select calendar</a> or <a class="btn btn-default" id="signup_create_calendar">Create calendar</a>
 								</div>
-						  	</div>
-						  	<div class="form-group">
+							</div>
+							<div class="form-group disabled" id="signup_create_calendar_group">
+								<div class="col-sm-offset-1 col-sm-5">
+									<input type="text" id="signup_create_calendar_name" placeholder="Name" class="form-control">
+								</div>
+							</div>
+							<div class="form-group disabled" id="signup_calendars_group">
+								<div class="col-sm-offset-2">
+									<div class="btn-group-vertical" id="signup_calendars_table">
+									</div>
+								</div>
+							</div>
+							<div class="form-group">
 								<div class="col-sm-offset-1">
 								    <div class="checkbox">
 								        <label>
-								        	<input type="checkbox"> Notifications
+								        	<input type="checkbox" id="signup_simplify" class="checkbox"> Simplify
+								        </label>
+								    </div>
+								    <div class="checkbox">
+								        <label>
+								        	<input type="checkbox" id="signup_notifications" class="checkbox"> Notifications
 								        </label>
 								    </div>
 								</div>
@@ -72,6 +85,10 @@
 							</div>
 						</form>
 					</div>
+				</div>
+
+				<div id="signup_assignments" class="disabled-page page">
+
 				</div>
 
 				<div id="update_front" class="disabled-page page">
@@ -88,6 +105,7 @@
 
     	<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
     	<link rel="stylesheet" type="text/css" href="css/typeahead.js-bootstrap.css">
+    	<link rel="stylesheet" type="text/css" href="css/bootstrap-checkbox.css">
     	<link href="bootstrap/css/sticky-footer.css" rel="stylesheet">
     	<link href="css/style.css" rel="stylesheet">
     </body>

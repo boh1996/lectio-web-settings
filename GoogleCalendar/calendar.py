@@ -30,6 +30,10 @@ class GoogleCalendar:
         url = "%scolors?%s=%s" % (urls.google_api_base_url, variables.access_token_parameter, self.access_token)
         f = urllib.urlopen(url)
 
+        response = f.read()
+
+        return json.loads(response)
+
     # Insert an event to the selected calendar
     def insertEvent (self, calendar_id, params):
         url = "%scalendars/%s/events?%s=%s" % (urls.google_api_base_url, calendar_id, variables.access_token_parameter, self.access_token)
@@ -44,6 +48,15 @@ class GoogleCalendar:
         url = "%scalendars/%s/events/%s?%s=%s" % (urls.google_api_base_url, calendar_id , event_id,variables.access_token_parameter, self.access_token)
 
         response = requests.delete(url)
+
+    # Creates a new Calendar
+    def createCalendar (self, name, timeZone = "Europe/Copenhagen"):
+        url = "%susers/me/calendarList?%s=%s" % (urls.google_api_base_url, variables.access_token_parameter, self.access_token)
+
+        f = requests.post(url, data=json.dumps({"summary" : name, "timeZone" : timeZone}), headers={'content-type': 'application/json'})
+        response = f.json()
+
+        return response
 
     # Retrieve the list of Google calendars for a user
     def calendars (self):

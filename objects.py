@@ -29,6 +29,24 @@ def to_json(inst, cls, exclude=[]):
                 d[c.name] = v
     return json.dumps(d)
 
+class TimeTableTask(db.Model):
+    __tablename__ = "tasks"
+    id = db.Column(db.Integer(11), primary_key=True)
+    google_id = db.Column(db.String(255),db.ForeignKey("user.user_id"), unique=True)
+    calendar_id = db.Column(db.String(255))
+    simplify = db.Column(db.Integer(2))
+    last_updated = db.Column(db.String(40))
+    notifications = db.Column(db.String(2))
+
+    def __init__(self, google_id, calendar_id, simplify ):
+        self.google_id = google_id
+        self.calendar_id = calendar_id
+        self.simplify = simplify
+        self.last_updated = str(mktime(datetime.now().timetuple()))[:-2]
+
+    def __repr__(self):
+        return '<TimeTableTask %r>' % self.id
+
 # The User model
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)

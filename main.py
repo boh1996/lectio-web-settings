@@ -8,6 +8,8 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from app import *
 from objects import *
 import string
+from datetime import *
+from time import mktime
 import random
 import json
 from flask import Response
@@ -41,6 +43,93 @@ def after_request(response):
     response.headers.add("Content-Type", "application/json")
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
+
+@application.route("/fetch/calendars")
+def fetch_calendars():
+    if request.args.get("token"):
+        UserObject = db.session.query(User).join(UserToken,UserToken.user_id == User.user_id).filter(UserToken.token == request.args.get("token")).first()
+        UsersToken = db.session.query(UserToken).filter(UserToken.token == request.args.get("token")).first()
+        if isinstance(UserObject, User):
+
+            # Refresh Google Token
+            if int(UsersToken.expires_at) <= int(str(mktime(datetime.now().timetuple()))[:-2]):
+                Token = GoogleOAuth.refresh(UserObject.refresh_token)
+                UsersToken.access_token = Token.access_token
+                UsersToken.expires_at = str(mktime(datetime.now().timetuple())+int(Token.expires_in))[:-2]
+                db.session.add(UsersToken)
+                db.session.commit()
+
+            GoogleCalendarObject = GoogleCalendar.GoogleCalendar()
+            GoogleCalendarObject.access_token = UsersToken.access_token
+            colors = GoogleCalendarObject.colors()
+            calendars = GoogleCalendarObject.calendars()
+
+            return json.dumps({
+                "status" : "ok",
+                "calendars" : calendars,
+                "colors" : colors
+            })
+        else:
+            return json.dumps({
+            "status" : "error",
+            "error_code" : "403",
+            "error_message" : "No token found!"
+        }), 403
+    else:
+        return json.dumps({
+            "status" : "error",
+            "error_code" : "400",
+            "error_message" : "No token supplied"
+        }), 400
+
+@application.route("/save/calendar",methods=["POST","GET"])
+def save_calendar():
+    if request.args.get("token"):
+        UserObject = db.session.query(User).join(UserToken,UserToken.user_id == User.user_id).filter(UserToken.token == request.args.get("token")).first()
+        if isinstance(UserObject, User):
+            incomming = json.loads(request.form.keys()[0])
+            ExistingTask = db.session.query(TimeTableTask).filter(google_id = UserObject.user_id).first()
+
+            TaskObject = TimeTableTask(UserObject.user_id, "" ,incomming.simplify)
+
+            if isinstance(ExistingTask, TimeTableTask):
+                TaskObject = ExistingTask
+
+            if incomming.calendar.type == "existing":
+                TaskObject.calendar_id = incomming.calendar.id
+            else:
+                UsersToken = db.session.query(UserToken).filter(UserToken.token == request.args.get("token")).first()
+
+                # Refresh Google Token
+                if int(UsersToken.expires_at) <= int(str(mktime(datetime.now().timetuple()))[:-2]):
+                    Token = GoogleOAuth.refresh(UserObject.refresh_token)
+                    UsersToken.access_token = Token.access_token
+                    UsersToken.expires_at = str(mktime(datetime.now().timetuple())+int(Token.expires_in))[:-2]
+                    db.session.add(UsersToken)
+                    db.session.commit()
+
+                GoogleCalendarObject = GoogleCalendar.GoogleCalendar
+                GoogleCalendarObject.access_token = UsersToken.access_token
+                GoogleCalendarObject.createCalendar(incomming.calendar.name)
+
+            db.session.add(TaskObject)
+            db.session.commit()
+
+            return json.dumps({
+                "status" : "ok"
+            })
+        else:
+            return json.dumps({
+            "status" : "error",
+            "error_code" : "403",
+            "error_message" : "No token found!"
+        }), 403
+    else:
+        return json.dumps({
+            "status" : "error",
+            "error_code" : "400",
+            "error_message" : "No token supplied"
+        }), 400
 
 @application.route("/save/school", methods=["POST","GET"])
 def save_school():

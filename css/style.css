@@ -3,5 +3,13 @@
 }
 
 .active-page {
-	
+
+}
+
+.disabled {
+	display:none;
+}
+
+#signup_calendars_table a.active {
+	padding:20px #CAD4D4;
 }
