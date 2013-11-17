@@ -31,12 +31,80 @@
 					<div class="well">
 						<form class="form-horizontal" role="form">
 							<div class="form-group">
-								<input type="hidden" id="school">
-								<input type="text" class="form-control typeahead schools">
+								<div class="col-sm-offset-1 col-sm-10">
+									<input type="hidden" id="school">
+									<input type="text" class="form-control typeahead schools">
+								</div>
 							</div>
 							<div class="form-group">
-								<div class="pull-right">
-									<a class="btn btn-primary" id="save-school">Save</a>
+								<div class="col-sm-10 col-sm-offset-1">
+									<div class="pull-right">
+										<a class="btn btn-primary" id="save-school">Save</a>
+									</div>
+
+									<p class="text-muted">
+										<i>
+											<b>*</b> Please contact us at <a href="mailto:support@illution.dk">support@illution.dk</a><br> if you can't find your school!
+										</i>
+									</p>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+
+				<div id="signup_user_id" class="disabled-page page">
+					<p class="lead">Please select your user!</p>
+					<div class="well">
+						<form class="form-horizontal" role="form">
+							<div class="form-group">
+								<div class="col-sm-offset-1 col-sm-10">
+									<input type="hidden" id="signup_student_id">
+									<input type="text" class="form-control typeahead students">
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="col-sm-offset-1 col-sm-10">
+									<div class="pull-right">
+										<a class="btn btn-primary" id="save-user-id">Save</a>
+									</div>
+
+									<p class="text-muted">
+										<i>
+											<b>*</b> Please contact us at <a href="mailto:support@illution.dk">support@illution.dk</a><br> if you can't find your user!
+										</i>
+									</p>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+
+				<div id="signup_assignment_sync_user" class="disabled-page page">
+					<p class="lead">Please log in to Lectio, to add your user credidentials!</p>
+					<div class="well">
+						<form class="form-horizontal" role="form">
+							<div class="form-group">
+								<div class="col-sm-offset-1 col-sm-10">
+									<input type="text" id="signup_username" class="form-control" placeholder="Username">
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="col-sm-offset-1 col-sm-10">
+									<input type="password" id="signup_password" class="form-control" placeholder="Password">
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="col-sm-offset-1 col-sm-10">
+									<div class="pull-right">
+										<a class="btn btn-primary" id="save-user">Login</a>
+									</div>
+
+									<p class="text-muted">
+										<i>
+											<b>*</b> The information will be stored and will be used to fetch your assignments.
+										</i>
+									</p>
 								</div>
 							</div>
 						</form>

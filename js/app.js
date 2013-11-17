@@ -41,6 +41,12 @@ $(document).on("click", "#signup_create_calendar", function () {
 	}
 });
 
+/**
+ * Returns a row in a Object, found by the key
+ * @param  {Object} list [description]
+ * @param  {string|integer} id
+ * @return {Object}
+ */
 function getById ( list, id) {
 	for( var key in list ) {
 
@@ -101,6 +107,7 @@ $(document).on("click", "#save-timetable", function () {
 	}
 });
 
+// When the select calendar button is clicked
 $(document).on("click", "#signup_calendars", function () {
 	if ( $("#signup_calendars_group").hasClass("disabled") ) {
 		session = $.parseJSON(localStorage.getItem("session"));
@@ -126,19 +133,81 @@ $(document).on("click", "#signup_calendars", function () {
 	}
 });
 
+// Submit the user_id information form
+$(document).on("click", "#save-user-id", function () {
+	if ( $("#signup_student_id").attr("data-student").length == 0 ) return false;
+
+	session = $.parseJSON(localStorage.getItem("session"));
+
+	$.ajax({
+		type : "post",
+		url : api_url + "save/user-id?token=" + session.token,
+		data : JSON.stringify({
+			"student_id" : $("#signup_student_id").attr("data-student")
+		})
+	}).success(function () {
+		History.pushState(null,null, base_url+"signup-timetable");
+	}).fail(function () {
+		// Error
+	});
+});
+
+// Submit the user information form
+/**$(document).on("click", "#save-user", function () {
+	if ( $("#signup_password").val().length == 0 || $("#signup_username").val().length == 0 ) return false;
+
+	$.ajax({
+		url : api_url + "save/user",
+		data : JSON.stringify({
+			"type" : "POST",
+			"username" : $("#signup_username").val(),
+			"password" : atob($("#signup_password").val()),
+			"assignment_sync" : $("#signup_assignments_sync").attr("data-checked"),
+		})
+	}).success(function () {
+		History.pushState(null,null, base_url+"signup-timetable");
+	}).fail(function () {
+		// Error
+	});
+});*/
+
+// Save the selected school in the menu
 $(document).on("click", "#save-school", function () {
 	if ( typeof $("#school").attr("data-school") == "undefined" ) return;
 	changes = {
 		school_id : $("#school").attr("data-school"),
 		branch_id : $("#school").attr("data-branch")
 	};
+	localStorage.setItem("branch_id", $("#school").attr("data-branch"));
 
 	session = $.parseJSON(localStorage.getItem("session"));
 
 	$.post(api_url + "save/school?token=" + session.token, changes).success(function (json) {
-		History.pushState(null,null, base_url+"signup-timetable");
+		History.pushState(null,null, base_url+"signup-lectio-user-id");
 	}).fail(function () {
 		// Error
+	});
+});
+
+crossroads.addRoute("signup-lectio-user", function () {
+	$("#signup_lectio_user").addClass("active-page").removeClass("disabled-page");
+	$('input[type="checkbox"]').checkbox();
+});
+
+crossroads.addRoute("signup-lectio-user-id", function () {
+	$("#signup_user_id").addClass("active-page").removeClass("disabled-page");
+	$("input.students").typeahead({
+		name : "students",
+		engine : Hogan,
+		valueKey : "name",
+		prefetch : api_url + "students?branch_id="+localStorage.getItem("branch_id"),
+		remote : api_url + "students?suggest=%QUERY&branch_id="+localStorage.getItem("branch_id"),
+		limit : 5,
+		ttl: 0,
+		template : '<p data-student="{{student_id}}" data-id="{{id}}">{{name}} ({{class_student_id}})</p>',
+	});
+	$("input.students").on("typeahead:selected typeahead:autocompleted", function(e,datum) {
+		$("#signup_student_id").attr("data-student", datum.student_id);
 	});
 });
 
@@ -155,6 +224,7 @@ crossroads.bypassed.add(function () {
     $("#home").addClass("active-page").removeClass("disabled-page");
 });
 
+// Show the Select school form
 crossroads.addRoute("signup-school", function () {
 	$("#signup_school").addClass("active-page").removeClass("disabled-page");
 	$("input.schools").typeahead({
@@ -176,6 +246,7 @@ crossroads.addRoute("update", function () {
 	$("#update_front").addClass("active-page").removeClass("disabled-page");
 });
 
+// Google OAuth Login Callback
 crossroads.addRoute("callback", function () {
 	if ( getURLParameter("code") !== null ) {
 		$.get(api_url + "callback?state=" + getURLParameter("state") +"&code=" + getURLParameter("code")).success( function (json) {

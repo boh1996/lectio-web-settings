@@ -2,10 +2,14 @@ from flask import Flask
 from flask import redirect
 from flask import request
 from flask.ext.sqlalchemy import SQLAlchemy
+from sqlalchemy import *
+from sqlalchemy.ext.declarative import declarative_base
 from app import db
 from datetime import *
 import json
 from time import mktime
+
+Base = declarative_base()
 
 def to_json(inst, cls, exclude=[]):
     """
@@ -57,6 +61,7 @@ class User(db.Model):
     lectio_user_id = db.Column(db.String(45))
     username = db.Column(db.String(45))
     password = db.Column(db.String(45))
+    name = db.Column(db.String(200))
 
     def __init__(self,
         user_id,
@@ -66,6 +71,7 @@ class User(db.Model):
             lectio_user_id = "",
             username = "",
             password = "",
+            name = "",
         ):
         self.user_id = user_id
         self.refresh_token = refresh_token
@@ -74,6 +80,7 @@ class User(db.Model):
         self.lectio_user_id = lectio_user_id
         self.username = username
         self.password = password
+        self.name = name
 
     def __repr__(self):
         return '<User %r>' % self.id
@@ -106,10 +113,11 @@ class UserToken(db.Model):
 # School Object, taken from Lectio API
 class School(db.Model):
     __tablename__ = "schools"
-    id = db.Column(db.Integer, primary_key=True)
+    __table_args__ = (db.UniqueConstraint("school_id", "school_branch_id", name='_school_identification'),)
+    id = db.Column(db.Integer(11), primary_key=True)
     name = db.Column(db.String(255))
-    school_id = db.Column(db.Integer(45))
-    school_branch_id = db.Column(db.Integer(45))
+    school_id = db.Column(db.Integer(11))
+    school_branch_id = db.Column(db.String(255), unique=True, nullable=False)
 
     def __init__(self, name, school_id, school_branch_id):
         self.name = name
@@ -122,6 +130,44 @@ class School(db.Model):
     @property
     def json(self):
         return to_json(self, self.__class__)
+
+class Class(db.Model):
+    __tablename__ = "classes"
+    id = db.Column(db.Integer(11), primary_key=True)
+    name = db.Column(db.String(255))
+    school_id = db.Column(db.Integer(11))
+    school_branch_id = db.Column(db.String(255), db.ForeignKey("schools.school_branch_id"))
+    class_id = db.Column(db.String(255), unique=True)
+
+    def __init__(self, name, school_id, branch_id, class_id):
+        self.name = name
+        self.school_id = school_id
+        self.school_branch_id = branch_id
+        self.class_id = class_id
+
+class Student(Base):
+    __tablename__ = "students"
+    id = Column(Integer(11), primary_key=True)
+    name = Column(String(255))
+    student_id = Column(String(255), unique=True, nullable=False)
+    context_card_id = Column(String(11))
+    class_id = Column(String(255), ForeignKey("classes.class_id"))
+    class_student_id = Column(String(255))
+    class_description = Column(String(255))
+    status = Column(String(200))
+    school_id = Column(Integer(11))
+    school_branch_id = Column(String(255), ForeignKey("schools.school_branch_id"))
+
+    def __init__(self, name, student_id, context_card_id, student_class, class_student_id, class_description, status, school_id, branch_id):
+        self.name = name
+        self.context_card_id = context_card_id
+        self.student_id = student_id
+        self.class_id = student_class
+        self.class_student_id = class_student_id
+        self.class_description = class_description
+        self.status = status
+        self.school_id = school_id
+        self.school_branch_id = branch_id
 
 # Access token model
 class AccessToken(db.Model):

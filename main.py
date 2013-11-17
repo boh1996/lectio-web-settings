@@ -14,6 +14,7 @@ import random
 import json
 from flask import Response
 from GoogleOAuth.error import Error
+from LectioAPI import authenticate
 
 db.create_all()
 
@@ -82,6 +83,63 @@ def fetch_calendars():
             "error_message" : "No token supplied"
         }), 400
 
+@application.route("/save/user-id", methods=["POST"])
+def save_user_id():
+    if request.args.get("token"):
+        UserObject = db.session.query(User).join(UserToken,UserToken.user_id == User.user_id).filter(UserToken.token == request.args.get("token")).first()
+        if isinstance(UserObject, User):
+            incomming = json.loads(request.form.keys()[0])
+
+            UserObject.lectio_user_id = incomming.student_id
+
+            db.session.add(UserObject)
+            db.session.commit()
+
+            return json.dumps({
+                "status" : "ok"
+            })
+        else:
+            return json.dumps({
+            "status" : "error",
+            "error_code" : "403",
+            "error_message" : "No token found!"
+        }), 403
+    else:
+        return json.dumps({
+            "status" : "error",
+            "error_code" : "400",
+            "error_message" : "No token supplied"
+        }), 400
+
+
+@application.route("/save/user", methods=["POST"])
+def save_user():
+    pass
+    '''if request.args.get("token"):
+        UserObject = db.session.query(User).join(UserToken,UserToken.user_id == User.user_id).filter(UserToken.token == request.args.get("token")).first()
+        if isinstance(UserObject, User):
+            incomming = json.loads(request.form.keys()[0])
+            if hasattr(incomming,"username") and hasattr(incomming,"password"):
+                UserObject.username = incomming.username
+                UserObject.password = incomming.password
+
+                return json.dumps({
+                    "status" : "ok"
+                })
+            else:
+        else:
+            return json.dumps({
+            "status" : "error",
+            "error_code" : "403",
+            "error_message" : "No token found!"
+        }), 403
+    else:
+        return json.dumps({
+            "status" : "error",
+            "error_code" : "400",
+            "error_message" : "No token supplied"
+        }), 400'''
+
 @application.route("/save/calendar",methods=["POST","GET"])
 def save_calendar():
     if request.args.get("token"):
@@ -131,6 +189,8 @@ def save_calendar():
             "error_message" : "No token supplied"
         }), 400
 
+
+
 @application.route("/save/school", methods=["POST","GET"])
 def save_school():
     if request.args.get("token"):
@@ -159,12 +219,34 @@ def save_school():
             "error_message" : "No token supplied"
         }), 400
 
+@application.route("/students")
+def students():
+    if request.args.get("suggest") == False or request.args.get("suggest") == None:
+        students = db.session.query(Student).filter(Student.school_branch_id==request.args.get("branch_id")).all()
+    else:
+        searchstring = request.args.get("suggest") + '%'
+        students = db.session.query(Student).filter(Student.name.like(searchstring)).filter(Student.school_branch_id==request.args.get("branch_id")).limit(5)
+
+    studentList = []
+    for student in students:
+        tokens = student.name.split(" ")
+        tokens.append(student.name)
+        studentList.append({
+            "name" : student.name,
+            "student_id" : student.student_id,
+            "class_student_id" : student.class_student_id,
+            "id" : student.id,
+            "tokens" : tokens,
+            "value" : student.name
+        })
+    return json.dumps(studentList)
+
+
 @application.route("/schools")
 def schools():
-    if request.args.get("suggest") == False:
+    if request.args.get("suggest") == False or request.args.get("suggest") == None:
         schools = db.session.query(School).all()
     else:
-        print "Suggest"
         searchstring = request.args.get("suggest") + '%'
         schools = db.session.query(School).filter(School.name.like(searchstring)).limit(5)
 
